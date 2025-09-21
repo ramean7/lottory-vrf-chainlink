@@ -1,66 +1,83 @@
-## Foundry
+🎟 Raffle Contract Overview
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This contract is a simple Raffle that uses Chainlink VRF v2 to randomly select a winner and can be automated via Chainlink Keepers.
 
-Foundry consists of:
+⚡ Features
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+Players can participate in the raffle using ETH.
 
-## Documentation
+Random winner selection via Chainlink VRF v2.
 
-https://book.getfoundry.sh/
+Automated raffle execution based on time intervals via Chainlink Keepers.
 
-## Usage
+Manages raffle states (OPEN & CALCULATING).
 
-### Build
+Secure payments and prevents underpayment entries.
 
-```shell
-$ forge build
-```
+🏗️ Variables & Structure
+Raffle States
+enum RaffleState {
+    OPEN,
+    CALCULATING
+}
 
-### Test
+Key Variables
 
-```shell
-$ forge test
-```
+i_entranceFee: Entry fee to the raffle.
 
-### Format
+i_interval: Time interval between raffles.
 
-```shell
-$ forge fmt
-```
+s_players: List of players.
 
-### Gas Snapshots
+s_recentWinner: Most recent winner.
 
-```shell
-$ forge snapshot
-```
+s_raffleState: Current state of the raffle.
 
-### Anvil
+🔹 Main Functions
+1. enterRaffle
 
-```shell
-$ anvil
-```
+Players can enter the raffle by sending ETH.
 
-### Deploy
+2. checkUpkeep
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+Checks if the automated raffle execution conditions are met:
 
-### Cast
+Required time has passed.
 
-```shell
-$ cast <subcommand>
-```
+Raffle is open.
 
-### Help
+At least one player exists.
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Contract balance is positive.
+
+3. performUpkeep
+
+If checkUpkeep is true, this function requests a random winner via VRF and sets the raffle state to CALCULATING.
+
+4. fulfillRandomWords
+
+Chainlink VRF callback function that selects the random winner and transfers the prize.
+
+5. Getter Functions
+
+For viewing contract info such as state, number of players, recent winner, etc.
+
+⚠️ Errors
+
+Raffle__UpkeepNotNeeded: Upkeep conditions not met.
+
+Raffle__TransferFailed: Failed ETH transfer to the winner.
+
+Raffle__SendMoreToEnterRaffle: Sent value is less than entrance fee.
+
+Raffle__RaffleNotOpen: Raffle is not open.
+
+📝 Usage
+
+Deploy the contract on the desired network.
+
+Set the VRF Coordinator address and SubscriptionId.
+
+Players can enter using enterRaffle.
+
+Chainlink Keeper automatically triggers raffle execution.
